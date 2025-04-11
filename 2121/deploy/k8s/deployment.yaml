@@ -1,4 +1,4 @@
-apiVersion: apps/v1
+fapiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: anotherclass-212
@@ -33,7 +33,7 @@ spec:
         kubernetes.io/hostname: k8s-master
       containers:
         - name: api-tester-2121
-          image: 1pro/api-tester:v1.0.0
+          image: zaimyon/api-tester:v1.0.0
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
