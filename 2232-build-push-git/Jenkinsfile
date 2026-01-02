@@ -20,17 +20,17 @@ pipeline {
         // GITHUB_USERNAME = ""
 
         GITHUB_URL = "https://github.com/${GITHUB_USERNAME}/kubernetes-anotherclass-sprint2.git"
-        APP_VERSION = '1.1.1'
+        APP_VERSION = 'git'
         BUILD_DATE = sh(script: "echo `date +%y%m%d.%H%M%S`", returnStdout: true).trim()
 
         TAG = "${APP_VERSION}-" + "${BUILD_DATE}"
 
         // 실습 넘버링
-        CLASS_NUM = '2232'
+        CLASS_NUM = '2232-build-push-git'
     }
 
-    stages {
 
+    stages {
         stage('Username 확인') {
             steps {
                 script {
@@ -44,7 +44,7 @@ pipeline {
         stage('소스파일 체크아웃') {
             steps {
                 // 소스코드를 가져올 Github 주소
-                git branch: 'main', url: 'https://github.com/k8s-1pro/kubernetes-anotherclass-api-tester.git'
+                git branch: 'main', url: "https://github.com/k8s-1pro/kubernetes-anotherclass-api-tester.git"
             }
         }
 
@@ -90,6 +90,35 @@ pipeline {
                 always {
                     // 도커 로그아웃
                     sh "docker logout"
+                }
+            }
+        }
+
+        stage('Helm values 파일 업데이트 및 GitHub 푸시') {
+            steps {
+                script {
+
+                    def valuesFile = "./${CLASS_NUM}/deploy/helm/api-tester/values-${params.PROFILE}.yaml"
+
+                    // image 수정
+                    sh """
+                        sed -i 's|^  repository:.*|  repository: ${DOCKERHUB_USERNAME}/api-tester|' ${valuesFile}
+                        sed -i 's|^  tag:.*|  tag: "${TAG}"|' ${valuesFile}
+                    """
+
+                    // github로 업데이트
+                    withCredentials([usernamePassword(credentialsId: 'github_token', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                        sh """
+                            git config user.email "${GITHUB_USERNAME}@email.com"
+                            git config user.name "${GITHUB_USERNAME}"
+
+                            git remote set-url origin https://${USERNAME}:${PASSWORD}@github.com/${GITHUB_USERNAME}/kubernetes-anotherclass-sprint2.git
+
+                            git add ${valuesFile}
+                            git commit -m "Update ${valuesFile} with new image tag: ${TAG}"
+                            git push origin HEAD:main
+                        """
+                    }
                 }
             }
         }
