@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   namespace: anotherclass-212
-  name: api-tester-2121-properties
+  name: {{ include "api-tester.fullname" . }}-properties
   labels:
     part-of: k8s-anotherclass
     component: backend-server
