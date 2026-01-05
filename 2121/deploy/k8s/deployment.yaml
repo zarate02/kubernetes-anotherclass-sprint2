@@ -34,7 +34,7 @@ spec:
       containers:
         - name: api-tester-2121
           image: zaimyon/api-tester:v1.0.0
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           ports:
             - containerPort: 8080
               name: http
